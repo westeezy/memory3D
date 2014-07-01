@@ -10,7 +10,7 @@
 			}
 
 			body {
-				background-color: #000000;
+				background-color: #fff;
 				margin: 0;
 				font-family: Helvetica, sans-serif;;
 				overflow: hidden;
@@ -105,7 +105,6 @@
 		<script src="js/renderers/CSS3DRenderer.js"></script>
 
 		<div id="container"></div>
-		<div id="info"><a href="http://threejs.org" target="_blank">three.js css3d</a> - periodic table. <a href="https://plus.google.com/113862800338869870683/posts/QcFk5HrWran" target="_blank">info</a>.</div>
 		<div id="menu">
 			<button id="table">TABLE</button>
 			<button id="sphere">SPHERE</button>
@@ -240,7 +239,10 @@
 			var controls;
 
 			var objects = [];
+      var objectCache = [];
 			var targets = { table: [], sphere: [], helix: [], grid: [] };
+
+      var usedColors = [];
 
 			init();
 			animate();
@@ -258,7 +260,8 @@
 
 					var element = document.createElement( 'div' );
 					element.className = 'element';
-					element.style.backgroundColor = 'rgba(0,127,127,' + ( Math.random() * 0.5 + 0.25 ) + ')';
+					//element.style.backgroundColor = 'rgba(0,127,127,' + ( Math.random() * 0.5 + 0.25 ) + ')';
+          element.style.backgroundColor = randomColor();//"#"+((1<<24)*Math.random()|0).toString(16);
 
 					/*var number = document.createElement( 'div' );
 					number.className = 'number';
@@ -282,9 +285,27 @@
 					object.position.z = Math.random() * 4000 - 2000;
 
           object.element.onclick = function(e){
-            console.log(this.parent.position);
             //this.parent.rotation.y = 180 * Math.PI / 180;
             //this.parent.position.y = this.parent.position.y;
+            if(objectCache && objectCache.position && objectCache.rotation){
+              var old = objectCache;
+              var object = new THREE.Object3D();
+
+              object.position.x = old.position.x;
+              object.rotation.y = old.rotation.y;
+              object.position.y = old.position.y;
+              object.position.z = old.position.z;
+              rotate(object, old.indexInArray - 1,  500);
+              return;
+            }
+
+            objectCache = {position: {}, rotation:{}};
+            objectCache.position.x = this.parent.position.x;
+            objectCache.position.y = this.parent.position.y;
+            objectCache.position.z = this.parent.position.z;
+            objectCache.rotation.y = this.parent.rotation.y;
+            objectCache.indexInArray = this.parent.indexInArray;
+
             var object = new THREE.Object3D();
 
 					  object.position.x = - window.innerWidth;
@@ -378,7 +399,6 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         renderer.domElement.style.position = 'absolute';
         document.getElementById( 'container' ).appendChild( renderer.domElement );
-        var projector = new THREE.Projector();
 
 				controls = new THREE.TrackballControls( camera, renderer.domElement );
 				controls.rotateSpeed = 0.5;
@@ -419,6 +439,24 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 
 			}
+
+      function randomColor(){
+        var generate = function(){ return "#"+((1<<24)*Math.random()|0).toString(16) };
+        var checkUsed = function(color){
+          var i;
+          for(i=0; i< usedColors.length; i++){
+            if(usedColors[i] === color)
+              return true;
+          }
+          return false;
+        };
+        var color = generate();
+        while(checkUsed(color)){
+          color = generate();
+        }
+
+        return color;
+      };
 
       function rotate(target, index, duration){
 
