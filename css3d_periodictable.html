@@ -102,6 +102,7 @@
 		<script src="js/libs/three.js"></script>
 		<script src="js/libs/tween.min.js"></script>
 		<script src="js/controls/TrackballControls.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/renderers/CSS3DRenderer.js"></script>
 
 		<div id="container"></div>
@@ -296,6 +297,7 @@
               object.position.y = old.position.y;
               object.position.z = old.position.z;
               rotate(object, old.indexInArray - 1,  500);
+              objectCache = null;
               return;
             }
 
@@ -317,6 +319,7 @@
             object.scale.multiplyScalar(5);
 
             rotate(object, this.parent.indexInArray - 1,  500);
+            controls.reset();
           };
 					scene.add( object );
 
@@ -400,7 +403,7 @@
         renderer.domElement.style.position = 'absolute';
         document.getElementById( 'container' ).appendChild( renderer.domElement );
 
-				controls = new THREE.TrackballControls( camera, renderer.domElement );
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
 				controls.rotateSpeed = 0.5;
 				controls.minDistance = 500;
 				controls.maxDistance = 6000;
@@ -410,6 +413,9 @@
 				button.addEventListener( 'click', function ( event ) {
 
 					transform( targets.table, 2000 );
+          camera.position.y = 1;
+          camera.position.x = 1;
+          camera.position.z = 1;
 
 				}, false );
 
@@ -511,6 +517,15 @@
 					.start();
 
 			}
+
+      function resetCamera(){
+        TWEEN.Tween(camera).to(camera,0.5,{fov:35,onUpdate:function(){
+          autoRotate = false;
+          cameraControls.target  = scene.position;
+          camera.lookAt(scene.position);
+          camera.updateProjectionMatrix();
+        }});
+      };
 
 			function onWindowResize() {
 				camera.aspect = window.innerWidth / window.innerHeight;
